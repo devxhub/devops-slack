@@ -1,0 +1,61 @@
+name: Deploy Slack App
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  SERVER_IP: 139.59.193.155
+  USERNAME: devxhub
+  WORK_DIR: /var/www/devops-slack
+  VENV: .venv
+  APP_NAME: devops_slack
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up SSH Key
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_KEY }}
+
+    - name: Rsync project files
+      run: rsync -avz --delete --exclude '.git*' --exclude '.github' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ env.USERNAME }}@${{ env.SERVER_IP }}:${{ env.WORK_DIR }}
+
+    - name: Setup Supervisor
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ env.USERNAME }}@${{ env.SERVER_IP }} <<EOF
+        if ! [ -f /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf ]; then
+            sudo touch /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "[program:${{ env.APP_NAME }}]" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "directory=${{ env.WORK_DIR }}" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "command=${{ env.WORK_DIR }}/${{ env.VENV }}/bin/python3 app.py" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "autostart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "autorestart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "stderr_logfile=/var/log/${{ env.APP_NAME }}.err.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "stdout_logfile=/var/log/${{ env.APP_NAME }}.out.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "environment=SLACK_BOT_TOKEN=${{ vars.SLACK_BOT_TOKEN }},SLACK_APP_TOKEN=${{ vars.SLACK_APP_TOKEN }}" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            sudo supervisorctl reread
+            sudo supervisorctl update
+        else
+            echo "Supervisor config for ${{ env.APP_NAME }} already exists."
+        fi
+        sudo supervisorctl restart ${{ env.APP_NAME }}
+        EOF
+
+    - name: Setup and activate virtual environment
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ env.USERNAME }}@${{ env.SERVER_IP }} <<EOF
+        cd ${{ env.WORK_DIR }}
+        if ! [ -d ${{ env.VENV }} ]; then
+          python3 -m venv ${{ env.VENV }}
+        fi
+        source ${{ env.VENV }}/bin/activate
+        pip install -r requirements.txt
+        EOF
