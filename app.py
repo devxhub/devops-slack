@@ -182,7 +182,7 @@ def handle_submission(ack, view, say):
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "Dear Team,\n\nWe have successfully deployed the latest version of our application to the server. Below are the deployment details and links to the relevant Trello/Jira tasks for more information."
+          "text": f"• Project: *{project_name}*\n• Mode: *{deployment_type}*, Version: *{deployment_version}*"
         }
       },
       {
@@ -192,17 +192,7 @@ def handle_submission(ack, view, say):
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": f"• Project Name: *{project_name}*\n• Deployment Type: *{deployment_type}*\n• Deployment Version: *{deployment_version}*"
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": ":memo: *Key Changes & Tasks:*\nPlease review the following tasks for the deployment details:"
+          "text": ":memo: *Key Changes & Tasks:*"
         }
       },
       {
@@ -212,54 +202,14 @@ def handle_submission(ack, view, say):
           "text": f"{task_links}"
         }
       },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": ":white_check_mark: *Post-Deployment Actions:*\n• Test your respective areas of responsibility and report any issues directly on the linked Trello/Jira tasks."
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": ":loudspeaker: *Feedback:*\n• Your feedback on the new updates is valuable. Please share your thoughts and any issues encountered on the respective Trello/Jira tasks."
-        }
-      },
-      {
-        "type": "divider"
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "> Thank you for your cooperation and support during this deployment. Let's continue to work together to ensure a smooth transition for our users."
-        }
-      },
-      {
-        "type": "section",
-        "text": {
-          "type": "mrkdwn",
-          "text": "Best regards,\nDevOps Team"
-        }
-      }
       ],
       text=f"<@here>"
     )
     
-# Listens to incoming messages that contain "hello"
-@app.message("hello")
-def message_hello(message, say):
-    # say() sends a message to the channel where the event was triggered
-    say(
-      text=f"Hey there <@{message['user']}>!"
-    )
+# Listens to incoming messages
+@app.event("message")
+def handle_message_events(body, logger):
+    logger.info(body)
 
 # Start your app
 if __name__ == "__main__":
