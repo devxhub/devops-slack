@@ -8,6 +8,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 # Set up basic logging if the application is running in development
 if os.environ.get("ENV") == "development":
     logging.basicConfig(level=logging.DEBUG)
+elif os.environ.get("ENV") == "production":
+    logging.basicConfig(level=logging.INFO)
     
 # Function to store reminder timestamp in a file, ensuring one entry per channel
 def store_reminder_ts(channel_id, message_ts):
