@@ -438,6 +438,14 @@ def report_ba_modal(ack, body, client):
                         "emoji": True
                       },
                       "value": "No"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "N/A",
+                        "emoji": True
+                      },
+                      "value": "N/A"
                     }
                   ],
                   "action_id": "spent_time-action"
@@ -469,6 +477,14 @@ def report_ba_modal(ack, body, client):
                         "emoji": True
                       },
                       "value": "No"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "N/A",
+                        "emoji": True
+                      },
+                      "value": "N/A"
                     }
                   ],
                   "action_id": "project_status-action"
@@ -500,6 +516,14 @@ def report_ba_modal(ack, body, client):
                         "emoji": True
                       },
                       "value": "No"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "N/A",
+                        "emoji": True
+                      },
+                      "value": "N/A"
                     }
                   ],
                   "action_id": "sprint_plan-action"
@@ -531,6 +555,14 @@ def report_ba_modal(ack, body, client):
                         "emoji": True
                       },
                       "value": "No"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "N/A",
+                        "emoji": True
+                      },
+                      "value": "N/A"
                     }
                   ],
                   "action_id": "client_update-action"
@@ -906,6 +938,14 @@ def report_qa_modal(ack, body, client):
                         "emoji": True
                       },
                       "value": "No"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "N/A",
+                        "emoji": True
+                      },
+                      "value": "N/A"
                     }
                   ],
                   "action_id": "spent_time-action"
