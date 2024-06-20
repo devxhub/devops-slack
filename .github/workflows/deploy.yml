@@ -43,20 +43,17 @@ jobs:
     - name: Setup Supervisor
       run: |
         ssh -o StrictHostKeyChecking=no ${{ env.USERNAME }}@${{ env.SERVER_IP }} <<EOF
-        if ! [ -f /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf ]; then
-            sudo touch /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "[program:${{ env.APP_NAME }}]" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "directory=${{ env.WORK_DIR }}" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "command=${{ env.WORK_DIR }}/${{ env.VENV }}/bin/python ${{ env.WORK_DIR }}/app.py" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "autostart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "autorestart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "stderr_logfile=/var/log/${{ env.APP_NAME }}.err.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "stdout_logfile=/var/log/${{ env.APP_NAME }}.out.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "environment=ENV=production,SLACK_BOT_TOKEN='${{ vars.SLACK_BOT_TOKEN }}',SLACK_APP_TOKEN='${{ vars.SLACK_APP_TOKEN }}'" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            sudo supervisorctl reread
-            sudo supervisorctl update
-        else
-            echo "Supervisor config for ${{ env.APP_NAME }} already exists."
-        fi
+        sudo touch /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "[program:${{ env.APP_NAME }}]" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "directory=${{ env.WORK_DIR }}" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "command=${{ env.WORK_DIR }}/${{ env.VENV }}/bin/python ${{ env.WORK_DIR }}/app.py" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "autostart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "autorestart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "stderr_logfile=/var/log/${{ env.APP_NAME }}.err.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "stdout_logfile=/var/log/${{ env.APP_NAME }}.out.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        echo "environment=ENV=production,SLACK_BOT_TOKEN='${{ vars.SLACK_BOT_TOKEN }}',SLACK_APP_TOKEN='${{ vars.SLACK_APP_TOKEN }}'" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+        # Reload Supervisor
+        sudo supervisorctl reread
+        sudo supervisorctl update
         sudo supervisorctl restart ${{ env.APP_NAME }}
         EOF
