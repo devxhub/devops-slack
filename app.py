@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import pytz
 from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -1090,13 +1091,15 @@ def handle_message_events(body, logger):
       # store_reminder_ts(channel_id, message_ts)
       # logger.info(f"Stored reminder message ts: {message_ts}")
       
-      # Convert timestamp to datetime and check if it's after 8 PM
-      reminder_time = datetime.fromtimestamp(float(message_ts))
+      # Convert timestamp to datetime in the Asia/Dhaka timezone
+      reminder_time = datetime.fromtimestamp(float(message_ts), tz=pytz.UTC)
+      reminder_time = reminder_time.astimezone(pytz.timezone('Asia/Dhaka'))
+
       if reminder_time.hour >= 20:  # 8 PM in 24-hour format
           store_reminder_ts(channel_id, message_ts)
           logger.info(f"Stored reminder message ts: {message_ts}")
       else:
-          logger.info(f"Reminder received at {reminder_time.strftime('%Y-%m-%d %H:%M:%S')}, not storing because it is not after 8 PM.")
+          logger.info(f"Reminder received at {reminder_time.strftime('%Y-%m-%d %H:%M:%S %Z')}, not storing because it is not after 8 PM.")
 
 # Start your app
 if __name__ == "__main__":
