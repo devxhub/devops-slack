@@ -256,7 +256,7 @@ def handle_submission(ack, view, say):
    
 # Opan the modal for the BA report
 @app.command("/report-ba")
-def report_ba_modal(ack, body, client):
+def report_ba_modal(ack, body, client, say):
     # Acknowledge command request
     ack()
     
@@ -264,7 +264,7 @@ def report_ba_modal(ack, body, client):
     
     channel_id, reminder_message_ts = get_reminder_ts(channel_id)
     if not reminder_message_ts:
-        return client.chat_postMessage(channel=channel_id, text="No reminder message found.")
+      return say(channel=channel_id, text="No reminder message found.")
     
     # Call views_open with the built-in client
     client.views_open(
@@ -742,7 +742,7 @@ def handle_submission_ba_report(ack, view, say):
     
 # Opan the modal for the QA report
 @app.command("/report-qa")
-def report_qa_modal(ack, body, client):
+def report_qa_modal(ack, body, client, say):
     # Acknowledge command request
     ack()
     
@@ -750,7 +750,7 @@ def report_qa_modal(ack, body, client):
     
     channel_id, reminder_message_ts = get_reminder_ts(channel_id)
     if not reminder_message_ts:
-        return client.chat_postMessage(channel=channel_id, text="No reminder message found.")
+      return say(channel=channel_id, text="No reminder message found.")
     
     # Call views_open with the built-in client
     client.views_open(

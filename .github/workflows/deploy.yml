@@ -27,7 +27,7 @@ jobs:
         ssh-private-key: ${{ secrets.SSH_KEY }}
 
     - name: Rsync project files
-      run: rsync -avz --delete --exclude '.git*' --exclude '.github' --exclude '.venv' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ env.USERNAME }}@${{ env.SERVER_IP }}:${{ env.WORK_DIR }}
+      run: rsync -avz --delete --exclude '.git*' --exclude '.github' --exclude '.venv' --exclude 'reminder_ts.json' -e "ssh -o StrictHostKeyChecking=no" ./ ${{ env.USERNAME }}@${{ env.SERVER_IP }}:${{ env.WORK_DIR }}
 
     - name: Setup and activate virtual environment
       run: |
