@@ -1,6 +1,50 @@
 import os
+import logging
+import json
+from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
+
+# Set up basic logging if the application is running in development
+if os.environ.get("ENV") == "development":
+    logging.basicConfig(level=logging.DEBUG)
+    
+# Function to store reminder timestamp in a file, ensuring one entry per channel
+def store_reminder_ts(channel_id, message_ts):
+    reminder_data = {
+        "channel_id": channel_id,
+        "message_ts": message_ts
+    }
+
+    try:
+        with open('reminder_ts.json', 'r') as f:
+            try:
+                reminders = json.load(f)
+            except json.JSONDecodeError:
+                reminders = {}
+    except FileNotFoundError:
+        reminders = {}
+
+    # Ensure only one entry per channel
+    reminders[channel_id] = reminder_data
+
+    with open('reminder_ts.json', 'w') as f:
+        json.dump(reminders, f, indent=4)
+
+# Function to retrieve reminder timestamp for a specific channel from a file
+def get_reminder_ts(channel_id):
+    try:
+        with open('reminder_ts.json', 'r') as f:
+            try:
+                reminders = json.load(f)
+                if channel_id in reminders:
+                    reminder_data = reminders[channel_id]
+                    return reminder_data["channel_id"], reminder_data["message_ts"]
+            except json.JSONDecodeError:
+                return None, None
+    except FileNotFoundError:
+        return None, None
+    return None, None
 
 # Initializes your app with your bot token and socket mode handler
 app = App(token=os.environ.get("SLACK_BOT_TOKEN"))
@@ -213,6 +257,12 @@ def report_ba_modal(ack, body, client):
     # Acknowledge command request
     ack()
     
+    channel_id = body["channel_id"]
+    
+    channel_id, reminder_message_ts = get_reminder_ts(channel_id)
+    if not reminder_message_ts:
+        return client.chat_postMessage(channel=channel_id, text="No reminder message found.")
+    
     # Call views_open with the built-in client
     client.views_open(
         # Pass a valid trigger_id within 3 seconds of receiving it
@@ -220,7 +270,7 @@ def report_ba_modal(ack, body, client):
         # View payload
         view={
             "type": "modal",
-            "private_metadata": body["channel_id"],
+            "private_metadata": f'{channel_id},{reminder_message_ts}',
             "callback_id": "report_ba_modal",
             "title": {"type": "plain_text", "text": "Deliverable Items Report"},
             "submit": {"type": "plain_text", "text": "Generate"},
@@ -537,7 +587,9 @@ def report_ba_modal(ack, body, client):
 def handle_submission_ba_report(ack, view, say):
     ack()
     
-    channel_id = view["private_metadata"]
+    # Extract channel_id and reminder_message_ts from private_metadata
+    channel_id, reminder_message_ts = view["private_metadata"].split(',')
+    
     team_name_value = view["state"]["values"]["team_name"]["team_name-action"]["selected_option"]
     datepicker_value = view["state"]["values"]["datepicker"]["datepicker-action"]["selected_date"]
     deliverable_tickets_value = view["state"]["values"]["deliverable_tickets"]["deliverable_tickets-action"]
@@ -648,7 +700,8 @@ def handle_submission_ba_report(ack, view, say):
           }
         },
       ],
-      text=f"<@here>"
+      text=f"<@here>",
+      thread_ts=reminder_message_ts
     )
     
 # Opan the modal for the QA report
@@ -657,6 +710,12 @@ def report_qa_modal(ack, body, client):
     # Acknowledge command request
     ack()
     
+    channel_id = body["channel_id"]
+    
+    channel_id, reminder_message_ts = get_reminder_ts(channel_id)
+    if not reminder_message_ts:
+        return client.chat_postMessage(channel=channel_id, text="No reminder message found.")
+    
     # Call views_open with the built-in client
     client.views_open(
         # Pass a valid trigger_id within 3 seconds of receiving it
@@ -664,7 +723,7 @@ def report_qa_modal(ack, body, client):
         # View payload
         view={
             "type": "modal",
-            "private_metadata": body["channel_id"],
+            "private_metadata": f'{channel_id},{reminder_message_ts}',
             "callback_id": "report_qa_modal",
             "title": {"type": "plain_text", "text": "Deliverable Items Report"},
             "submit": {"type": "plain_text", "text": "Generate"},
@@ -901,7 +960,9 @@ def report_qa_modal(ack, body, client):
 def handle_submission_qa_report(ack, view, say):
     ack()
     
-    channel_id = view["private_metadata"]
+    # Extract channel_id and reminder_message_ts from private_metadata
+    channel_id, reminder_message_ts = view["private_metadata"].split(',')
+    
     team_name_value = view["state"]["values"]["team_name"]["team_name-action"]["selected_option"]
     datepicker_value = view["state"]["values"]["datepicker"]["datepicker-action"]["selected_date"]
     deliverable_tickets_value = view["state"]["values"]["deliverable_tickets"]["deliverable_tickets-action"]
@@ -1008,13 +1069,31 @@ def handle_submission_qa_report(ack, view, say):
           }
         },
       ],
-      text=f"<@here>"
+      text=f"<@here>",
+      thread_ts=reminder_message_ts
     )
 
 # Listens to incoming messages
 @app.event("message")
 def handle_message_events(body, logger):
-    logger.info(body)
+  logger.info(body)
+  event = body.get("event", {})
+  text = event.get("text", "")
+  
+  if "reminder" in text.lower():
+      channel_id = event.get("channel")
+      message_ts = event.get("ts")
+      
+      # store_reminder_ts(channel_id, message_ts)
+      # logger.info(f"Stored reminder message ts: {message_ts}")
+      
+      # Convert timestamp to datetime and check if it's 8 PM
+      reminder_time = datetime.fromtimestamp(float(message_ts))
+      if reminder_time.hour == 20:  # 8 PM in 24-hour format
+          store_reminder_ts(channel_id, message_ts)
+          logger.info(f"Stored reminder message ts: {message_ts}")
+      else:
+          logger.info(f"Reminder received at {reminder_time.strftime('%Y-%m-%d %H:%M:%S')}, not storing because it is not 8 PM.")
 
 # Start your app
 if __name__ == "__main__":

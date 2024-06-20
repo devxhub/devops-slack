@@ -52,7 +52,7 @@ jobs:
             echo "autorestart=true" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
             echo "stderr_logfile=/var/log/${{ env.APP_NAME }}.err.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
             echo "stdout_logfile=/var/log/${{ env.APP_NAME }}.out.log" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
-            echo "environment=SLACK_BOT_TOKEN='${{ vars.SLACK_BOT_TOKEN }}',SLACK_APP_TOKEN='${{ vars.SLACK_APP_TOKEN }}'" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
+            echo "environment=ENV=production,SLACK_BOT_TOKEN='${{ vars.SLACK_BOT_TOKEN }}',SLACK_APP_TOKEN='${{ vars.SLACK_APP_TOKEN }}'" | sudo tee -a /etc/supervisor/conf.d/${{ env.APP_NAME }}.conf
             sudo supervisorctl reread
             sudo supervisorctl update
         else
