@@ -585,6 +585,7 @@ def report_ba_modal(ack, body, client):
 
 @app.view("report_ba_modal")
 def handle_submission_ba_report(ack, view, say):
+    # Acknowledge the view_submission event
     ack()
     
     # Extract channel_id and reminder_message_ts from private_metadata
@@ -958,6 +959,7 @@ def report_qa_modal(ack, body, client):
 
 @app.view("report_qa_modal")
 def handle_submission_qa_report(ack, view, say):
+    # Acknowledge the view_submission event
     ack()
     
     # Extract channel_id and reminder_message_ts from private_metadata
@@ -1076,7 +1078,6 @@ def handle_submission_qa_report(ack, view, say):
 # Listens to incoming messages
 @app.event("message")
 def handle_message_events(body, logger):
-  logger.info(body)
   event = body.get("event", {})
   text = event.get("text", "")
   
@@ -1089,7 +1090,7 @@ def handle_message_events(body, logger):
       
       # Convert timestamp to datetime and check if it's 8 PM
       reminder_time = datetime.fromtimestamp(float(message_ts))
-      if reminder_time.hour == 20:  # 8 PM in 24-hour format
+      if reminder_time.hour > 20:  # 8 PM in 24-hour format
           store_reminder_ts(channel_id, message_ts)
           logger.info(f"Stored reminder message ts: {message_ts}")
       else:
